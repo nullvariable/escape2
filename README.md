@@ -8,7 +8,7 @@ The app contains a username/password which was hidden on a sticky note underneat
 
 The app also uses an Express server and Websockets to provide a remote control for starting/stopping the timer and resetting the app back to the login screen. Websockets are used to push the current time back to the remote app so the operator can see how much time is remaining.
 
-Check out the video describing the room on [YouTube](https://)
+Check out the video describing the room on [YouTube](https://youtu.be/xZ_W-WAhSOw)
 
 Screenshots:
 ![screenshot 1](https://github.com/nullvariable/escape2/raw/master/screenshot1.png "screenshot1")
