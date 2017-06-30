@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>escape room remote</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <script src="https://unpkg.com/vue"></script>
+
+  </head>
+  <body>
+    <div class="container-fluid" id="rcapp">
+      <div class="container">
+        <nav class="navbar navbar-light bg-faded">
+          <span class="navbar-text text-center">{{ digits(timeleft) }}</span>
+        </nav>
+      </div>
+      <div class="row justify-content-center">
+        <div class="text-center" :class="msgClasses" v-if="msgDisplay">{{ message }}</div>
+      </div>
+      <div class="row  justify-content-center">
+        <div class="d-flex flex-column">
+          <div class="p-2">
+            <button class="btn" @click="remote('startCD')">Start</button>
+          </div>
+          <div class="p-2">
+            <button class="btn" @click="remote('stopCD')">Stop</button>
+          </div>
+          <div class="p-2">
+            <button class="btn" @click="remote('resetApp')">Reset</button>
+          </div>
+          <div class="p-2">
+            <button class="btn" @click="toggleSocket()">{{ socketState }}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      let vue = new Vue({
+        el: '#rcapp',
+        data: {
+          message: '',
+          msgDisplay: false,
+          msgClasses: '',
+          timeleft: 00,
+          socketState: 'none'
+        },
+        methods: {
+          remote (type) {
+            let self = this
+            fetch(type).then((response) => {
+              return response.json()
+            }).then((json) => {
+              self.addMessage(json.message, json.class)
+            })
+          },
+          addMessage (message, cssclass) {
+            let self = this
+            if (typeof cssclass === "undefined") cssclass = 'alert-info'
+            self.message = message
+            self.msgDisplay = true
+            self.msgClasses = 'alert '+ cssclass
+          },
+          digits (milliseconds) {
+            let secondsLeft = Math.round(milliseconds / 1000)
+            let minutes = Math.floor(secondsLeft / 60)
+            let remainingSeconds = secondsLeft % 60
+            let left = prefix(minutes)
+            let right = prefix(remainingSeconds)
+            return left + ':' + right
+          },
+          toggleSocket () {
+            let self = this
+            let socket = this.$socket
+            if (socket.readyState == 1) {
+              self.socketState = 'closed'
+              socket.close()
+            } else {
+              socket = null
+              startSocket(self)
+            }
+          }
+        },
+        mounted: function () {
+          startSocket(this)
+        }
+      })
+
+      function startSocket(vue) {
+        vue.$socket = new WebSocket('ws://' + window.location.hostname + ':9000')
+        vue.$socket.addEventListener('open', () => {
+          vue.addMessage('socket open')
+          vue.socketState = 'open'
+        })
+        vue.$socket.addEventListener('close', () => {
+          vue.addMessage('socket closed')
+          vue.socketState = 'closed'
+        })
+        vue.$socket.addEventListener('error', function (event) {
+          console.log(event)
+          vue.addMessage('socket error')
+          vue.socketState = 'error'
+        })
+        vue.$socket.addEventListener('message', function (event) {
+          if (typeof event.data !== 'undefined') {
+            let json = JSON.parse(event.data)
+            vue.timeleft = json.timeleft
+          }
+        })
+
+      }
+
+      function prefix (value) {
+        if (value.toFixed().length === 1) return '0' + value.toFixed()
+        return value
+      }
+    </script>
+  </body>
+</html>
