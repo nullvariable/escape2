@@ -2,10 +2,9 @@
 // let five = require('./mocks/johnny-five')
 // console.log(process.env.NODE_ENV)
 // if (process.env.NODE_ENV === 'production') {
-const Raspi = require('raspi-io');
+const Raspi = require('raspi-io')
 const five = require('johnny-five')
 // }
-
 
 export default Hardware
 
@@ -29,7 +28,7 @@ function Hardware () {
   }
 
   console.log(board)
-  if (process.env.NODE_ENV !== 'development' && typeof board === 'Board') {
+  if (process.env.NODE_ENV !== 'development' && typeof board === 'Board') { // eslint-disable-line
     board.on('ready', function () {
       console.log('board ready')
       this.digits = new five.Led.Digits({
@@ -43,7 +42,6 @@ function Hardware () {
       self._digits = this.digits
     })
   }
-
 }
 
 Hardware.prototype.update = function (timeleft) {
